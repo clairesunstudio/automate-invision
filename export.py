@@ -5,41 +5,71 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 import time
 import downloads
 import private
 
-URL = 'https://'+private.org+'.invisionapp.com/spaces/'+private.space
+DRIVER_PATH='/usr/local/bin/chromedriver'
+#URL = 'https://'+private.org+'.invisionapp.com/spaces/'+private.space
+#URL = 'https://projects.invisionapp.com/d/main?origin=v7#/projects'
+URL = 'https://login.invisionapp.com/auth/sign-in?redirectTo=&redirHash=&origin=v6'
 
+service = Service(executable_path=DRIVER_PATH)
 options = webdriver.ChromeOptions()
 prefs = {'download.default_directory' : private.downloadDir}
 options.add_experimental_option('prefs', prefs)
 
-ChromeDriverManager
-driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
+#ChromeDriverManager
+#driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
+
+# Updated
+driver = webdriver.Chrome(options=options)
+
 # timeout after 20 seconds
-wait  = WebDriverWait(driver, 20)
+wait  = WebDriverWait(driver, 30)
 actions = ActionChains(driver)
 driver.set_window_position(0, 0)
 driver.set_window_size(2000, 1200)
 
 try:
     driver.get(URL)
-    emailField = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="signin_email"]')))
-    pwField = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="signin_password"]')))
+    #emailField = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="signin_email"]')))
+    emailField = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="signin_email"] | //*[@id="emailAddress"]')))
     emailField.send_keys(private.username)
+    #pwField = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="signin_password"]')))
+    pwField = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="password"] | //*[@id="signin_password"]')))
     pwField.send_keys(private.pw)
-    submitButton = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="app-shell:feature-root:auth-ui"]/div/div/div[1]/div/div/form/div[3]/button')))
+    #submitButton = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="app-shell:feature-root:auth-ui"]/div/div/div[1]/div/div/form/div[3]/button')))
+    submitButton = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="app-shell:feature-root:auth-ui"]/div/div/div/div[3]/div/div/div/form/div[3]/button | //*[@id="app-shell:feature-root:auth-ui"]/div/div/div[1]/div/div/form/div[3]/button')))
     submitButton.click()
 
-    sort = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="app-shell:feature-root:home"]/div/section/div[4]/div[3]/div/div/div/div[2]/div/span')))
-    sort.click()
-    sortAZ = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="app-shell:feature-root:home"]/div/section/div[4]/div[3]/div/div/div/div[2]/div/div/div/ul/li[4]/div/div')))
-    sortAZ.click()
+    #sort = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="app-shell:feature-root:home"]/div/section/div[4]/div[3]/div/div/div/div[2]/div/span')))
+    #sort.click()
+    #sortAZ = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="app-shell:feature-root:home"]/div/section/div[4]/div[3]/div/div/div/div[2]/div/div/div/ul/li[4]/div/div')))
+    #sortAZ.click()
 
-    windowHomeName = driver.execute_script("return document.getElementsByTagName('title')[0].text")
-    print('window name: '+windowHomeName)
+    first = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="fusion"]/inv-react-component/div/div/div['
+                                                             '2]/div[1]/a[1]')))
+    wait = WebDriverWait(driver, timeout=3)
+    original_window = driver.current_window_handle
+    first.click()
+
+    more_btn = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="board_actions"]/span/li[1]/a/div/div')))
+    more_btn.click()
+    wait = WebDriverWait(driver, timeout=3)
+    export_btn = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="board_actions"]/span/li[1]/ul/li/a')))
+    wait = WebDriverWait(driver, timeout=3)
+    export_btn.click()
+    wait = WebDriverWait(driver, timeout=3)
+    driver.switch_to.new_window('tab')
+    download_btn = wait.until(EC.element_to_be_clickable((By.XPATH, '/html/body/div/main/div/a')))
+    wait = WebDriverWait(driver, timeout=3)
+    download_btn.click()
+    wait = WebDriverWait(driver, timeout=330)
+    #windowHomeName = driver.execute_script("return document.getElementsByTagName('title')[0].text")
+    #print('window name: '+windowHomeName)
 
 
 
